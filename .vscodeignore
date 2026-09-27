@@ -1,0 +1,3 @@
+.git/**
+*.vsix
+npm-debug.log

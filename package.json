@@ -1,52 +1,187 @@
 {
   "name": "secore-formater",
-  "displayName": "Secore Formater",
-  "description": "Formateador compacto y escalado para HTML, PHP, JS y CSS.",
-  "version": "0.0.1",
-  "publisher": "luis",
+  "displayName": "Secore Formatter",
+  "description": "Formatter for PHP, mixed PHP/HTML templates, HTML, CSS/SCSS/LESS and SQL, with folder-wide formatting and native VS Code JavaScript/TypeScript formatting support.",
+  "version": "2.0.0",
+  "publisher": "LJSancibrian",
+  "license": "MIT",
+  "pricing": "Free",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.90.0"
   },
-  "categories": ["Formatters"],
+  "categories": [
+    "Formatters"
+  ],
+  "keywords": [
+    "formatter",
+    "php",
+    "codeigniter",
+    "html",
+    "css",
+    "scss",
+    "less",
+    "sql",
+    "format folder",
+    "indentation"
+  ],
   "activationEvents": [
-    "onLanguage:html",
     "onLanguage:php",
-    "onLanguage:javascript",
-    "onLanguage:css"
+    "onLanguage:php-template",
+    "onLanguage:html",
+    "onLanguage:css",
+    "onLanguage:scss",
+    "onLanguage:less",
+    "onLanguage:sql",
+    "onCommand:secore.formatFolder"
   ],
   "main": "./extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "php-template",
+        "aliases": [
+          "PHP Template",
+          "php-template"
+        ],
+        "extensions": [
+          ".phtml",
+          ".php-template"
+        ]
+      }
+    ],
+    "documentFormattingEditProvider": [
+      { "language": "php" },
+      { "language": "php-template" },
+      { "language": "html" },
+      { "language": "css" },
+      { "language": "scss" },
+      { "language": "less" },
+      { "language": "sql" }
+    ],
     "configuration": {
-      "title": "Secore Formater",
+      "title": "Secore Formatter",
       "properties": {
         "secore.indentSize": {
           "type": "number",
-          "default": 4
+          "default": 4,
+          "minimum": 1,
+          "maximum": 8,
+          "description": "Spaces per indentation level."
         },
-        "secore.maxLineLength": {
+        "secore.printWidth": {
           "type": "number",
-          "default": 140
+          "default": 160,
+          "minimum": 80,
+          "maximum": 300,
+          "description": "Preferred maximum line width."
         },
-        "secore.html.attributesInline": {
+        "secore.useTabs": {
           "type": "boolean",
-          "default": true
+          "default": false,
+          "description": "Indent with tabs instead of spaces."
         },
-        "secore.php.inlineIfFits": {
+        "secore.singleQuote": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Prefer single quotes where supported."
         },
-        "secore.js.inlineIfFits": {
-          "type": "boolean",
-          "default": true
+        "secore.sqlDialect": {
+          "type": "string",
+          "default": "mysql",
+          "enum": [
+            "sql",
+            "mysql",
+            "mariadb",
+            "postgresql",
+            "sqlite",
+            "transactsql",
+            "plsql",
+            "bigquery",
+            "redshift",
+            "spark",
+            "snowflake"
+          ],
+          "description": "SQL dialect used by Secore."
         },
-        "secore.css.compactRules": {
-          "type": "boolean",
-          "default": true
+        "secore.sqlKeywordCase": {
+          "type": "string",
+          "default": "upper",
+          "enum": [
+            "upper",
+            "lower",
+            "preserve"
+          ],
+          "description": "SQL keyword casing."
+        },
+        "secore.folderExcludeDirectories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            ".git",
+            "node_modules",
+            "vendor",
+            "dist",
+            "build",
+            ".next",
+            "coverage"
+          ],
+          "description": "Directory names ignored by Secore: Format Folder."
+        },
+        "secore.folderExtensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "php",
+            "phtml",
+            "php-template",
+            "html",
+            "htm",
+            "js",
+            "jsx",
+            "mjs",
+            "cjs",
+            "ts",
+            "tsx",
+            "mts",
+            "cts",
+            "css",
+            "scss",
+            "less",
+            "sql"
+          ],
+          "description": "File extensions processed by Secore: Format Folder. Each file uses the formatter configured in VS Code for its language."
         }
       }
+    },
+    "commands": [
+      {
+        "command": "secore.formatFolder",
+        "title": "Secore: Format Folder",
+        "category": "Secore"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "secore.formatFolder",
+          "when": "explorerResourceIsFolder == true",
+          "group": "navigation@90"
+        }
+      ]
     }
   },
+  "dependencies": {
+    "@prettier/plugin-php": "^0.25.0",
+    "prettier": "^3.6.0",
+    "sql-formatter": "^15.9.0"
+  },
   "devDependencies": {
-     "vscode": "^1.1.37"
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.6.0"
+  },
+  "scripts": {
+    "test": "node test.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
   }
 }
