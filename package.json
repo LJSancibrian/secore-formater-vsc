@@ -1,0 +1,52 @@
+{
+  "name": "secore-formater",
+  "displayName": "Secore Formater",
+  "description": "Formateador compacto y escalado para HTML, PHP, JS y CSS.",
+  "version": "0.0.1",
+  "publisher": "luis",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Formatters"],
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:php",
+    "onLanguage:javascript",
+    "onLanguage:css"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Secore Formater",
+      "properties": {
+        "secore.indentSize": {
+          "type": "number",
+          "default": 4
+        },
+        "secore.maxLineLength": {
+          "type": "number",
+          "default": 140
+        },
+        "secore.html.attributesInline": {
+          "type": "boolean",
+          "default": true
+        },
+        "secore.php.inlineIfFits": {
+          "type": "boolean",
+          "default": true
+        },
+        "secore.js.inlineIfFits": {
+          "type": "boolean",
+          "default": true
+        },
+        "secore.css.compactRules": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "devDependencies": {
+     "vscode": "^1.1.37"
+  }
+}
