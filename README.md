@@ -25,10 +25,8 @@ Busca **Secore Formatter** en la vista de extensiones de VS Code e instálalo no
 También puedes instalarlo desde terminal:
 
 ```bash
-code --install-extension luis.secore-formater
+code --install-extension LJSancibrian.secore-formater
 ```
-
-> Si el identificador del publisher publicado finalmente no es `luis`, sustituye `luis` por el publisher correcto.
 
 ## Formatear un documento
 
@@ -51,22 +49,22 @@ Ejemplo en `settings.json`:
 ```json
 {
     "[php]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     },
     "[html]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     },
     "[css]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     },
     "[scss]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     },
     "[less]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     },
     "[sql]": {
-        "editor.defaultFormatter": "luis.secore-formater"
+        "editor.defaultFormatter": "LJSancibrian.secore-formater"
     }
 }
 ```
