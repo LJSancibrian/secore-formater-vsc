@@ -293,10 +293,217 @@ function normalizePhpContinuations(text, indentSize, useTabs) {
     return lines.join('\n');
 }
 
+
+/**
+ * Preserve explicit parentheses written around "new" expressions.
+ *
+ * Example:
+ *
+ *     (new DateTimeImmutable(...))->setTimezone(...)
+ *
+ * Some PHP formatter/parser versions may consider the outer parentheses
+ * redundant and remove them. Secore must not do that: if the user wrote
+ * those parentheses, we preserve them independently of the project's PHP
+ * version.
+ *
+ * We replace only the OUTER parentheses with comments before formatting and
+ * restore them afterwards. Comments are valid PHP and are preserved by the
+ * formatter.
+ */
+function protectParenthesizedNewExpressions(text) {
+    const source = String(text);
+    const pairs = [];
+
+    let quote = null;
+    let lineComment = false;
+    let blockComment = false;
+
+    for (let i = 0; i < source.length; i++) {
+        const ch = source[i];
+        const next = source[i + 1];
+
+        if (lineComment) {
+            if (ch === '\n' || ch === '\r') lineComment = false;
+            continue;
+        }
+
+        if (blockComment) {
+            if (ch === '*' && next === '/') {
+                blockComment = false;
+                i++;
+            }
+            continue;
+        }
+
+        if (quote) {
+            if (ch === '\\') {
+                i++;
+                continue;
+            }
+            if (ch === quote) quote = null;
+            continue;
+        }
+
+        if (ch === '/' && next === '/') {
+            lineComment = true;
+            i++;
+            continue;
+        }
+        if (ch === '#') {
+            lineComment = true;
+            continue;
+        }
+        if (ch === '/' && next === '*') {
+            blockComment = true;
+            i++;
+            continue;
+        }
+        if (ch === '"' || ch === "'" || ch === '`') {
+            quote = ch;
+            continue;
+        }
+
+        if (ch !== '(') continue;
+
+        let p = i + 1;
+        while (p < source.length && /\s/.test(source[p])) p++;
+
+        if (!/^new\b/i.test(source.slice(p))) continue;
+
+        const close = findMatchingParenthesis(source, i);
+        if (close < 0) continue;
+
+        pairs.push({ open: i, close, id: pairs.length });
+
+        // Skip to the matching parenthesis so nested parentheses belonging to
+        // this new-expression are not examined as separate candidates.
+        i = close;
+    }
+
+    if (!pairs.length) {
+        return { text: source, protected: false };
+    }
+
+    const replacements = [];
+    for (const pair of pairs) {
+        replacements.push({
+            pos: pair.open,
+            value: `/*__SECORE_NEW_OPEN_${pair.id}__*/`
+        });
+        replacements.push({
+            pos: pair.close,
+            value: `/*__SECORE_NEW_CLOSE_${pair.id}__*/`
+        });
+    }
+
+    // Replace from right to left so offsets stay valid.
+    replacements.sort((a, b) => b.pos - a.pos);
+
+    let protectedText = source;
+    for (const replacement of replacements) {
+        protectedText =
+            protectedText.slice(0, replacement.pos) +
+            replacement.value +
+            protectedText.slice(replacement.pos + 1);
+    }
+
+    return { text: protectedText, protected: true };
+}
+
+function findMatchingParenthesis(text, openPos) {
+    let depth = 0;
+    let quote = null;
+    let lineComment = false;
+    let blockComment = false;
+
+    for (let i = openPos; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+
+        if (lineComment) {
+            if (ch === '\n' || ch === '\r') lineComment = false;
+            continue;
+        }
+
+        if (blockComment) {
+            if (ch === '*' && next === '/') {
+                blockComment = false;
+                i++;
+            }
+            continue;
+        }
+
+        if (quote) {
+            if (ch === '\\') {
+                i++;
+                continue;
+            }
+            if (ch === quote) quote = null;
+            continue;
+        }
+
+        if (ch === '/' && next === '/') {
+            lineComment = true;
+            i++;
+            continue;
+        }
+        if (ch === '#') {
+            lineComment = true;
+            continue;
+        }
+        if (ch === '/' && next === '*') {
+            blockComment = true;
+            i++;
+            continue;
+        }
+        if (ch === '"' || ch === "'" || ch === '`') {
+            quote = ch;
+            continue;
+        }
+
+        if (ch === '(') {
+            depth++;
+            continue;
+        }
+
+        if (ch === ')') {
+            depth--;
+            if (depth === 0) return i;
+        }
+    }
+
+    return -1;
+}
+
+function restoreParenthesizedNewExpressions(text) {
+    let output = String(text);
+
+    output = output.replace(
+        /\/\*__SECORE_NEW_OPEN_\d+__\*\/[ \t]*/g,
+        '('
+    );
+
+    output = output.replace(
+        /[ \t]*\/\*__SECORE_NEW_CLOSE_\d+__\*\/[ \t]*/g,
+        ')'
+    );
+
+    if (
+        output.includes('__SECORE_NEW_OPEN_') ||
+        output.includes('__SECORE_NEW_CLOSE_')
+    ) {
+        throw new Error('Secore could not restore protected PHP parentheses.');
+    }
+
+    return output;
+}
+
 module.exports = {
     normalizeMixedPhpMarkup,
     normalizePhpContinuations,
     hasRealHtmlOutsidePhp,
     normalizeEol,
-    tokenizeMixed
+    tokenizeMixed,
+    protectParenthesizedNewExpressions,
+    restoreParenthesizedNewExpressions
 };

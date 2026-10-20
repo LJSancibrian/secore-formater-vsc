@@ -3,7 +3,9 @@
 const {
     normalizePhpContinuations,
     hasRealHtmlOutsidePhp,
-    normalizeEol
+    normalizeEol,
+    protectParenthesizedNewExpressions,
+    restoreParenthesizedNewExpressions
 } = require('./postprocess');
 const { formatMixedPhp } = require('./mixed-php');
 
@@ -54,8 +56,28 @@ async function formatPhp(text, settings) {
 
     const pluginModule = await getPhpPlugin();
     const plugin = pluginModule.default || pluginModule;
-    let formatted = await formatWithPrettier(text, 'php', settings, [plugin]);
-    formatted = normalizePhpContinuations(formatted, settings.indentSize || 4, Boolean(settings.useTabs));
+
+    // Preserve explicit parentheses around new-expressions exactly because
+    // their necessity depends on the PHP version used by each project.
+    const protectedInput = protectParenthesizedNewExpressions(text);
+
+    let formatted = await formatWithPrettier(
+        protectedInput.text,
+        'php',
+        settings,
+        [plugin]
+    );
+
+    if (protectedInput.protected) {
+        formatted = restoreParenthesizedNewExpressions(formatted);
+    }
+
+    formatted = normalizePhpContinuations(
+        formatted,
+        settings.indentSize || 4,
+        Boolean(settings.useTabs)
+    );
+
     return formatted;
 }
 

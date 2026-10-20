@@ -2,7 +2,7 @@
   "name": "secore-formater",
   "displayName": "Secore Formatter",
   "description": "Formatter for PHP, mixed PHP/HTML templates, HTML, CSS/SCSS/LESS and SQL, with folder-wide formatting and native VS Code JavaScript/TypeScript formatting support.",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "publisher": "LJSancibrian",
   "license": "MIT",
   "pricing": "Free",
@@ -31,8 +31,7 @@
     "onLanguage:css",
     "onLanguage:scss",
     "onLanguage:less",
-    "onLanguage:sql",
-    "onCommand:secore.formatFolder"
+    "onLanguage:sql"
   ],
   "main": "./extension.js",
   "contributes": {
